@@ -40,3 +40,11 @@ func (ship *Ship) MoveShip(increment int, screenWidth int) {
 		ship.XPos = newShipXPos
 	}
 }
+func (ship *Ship) DrawUpdateShip(drawingFunc func(*ebiten.Image, *ebiten.DrawImageOptions)) {
+	// draw the ship:
+	shipDrawOptions := &ebiten.DrawImageOptions{}
+	shipDrawOptions.GeoM.Scale(ship.Scale, ship.Scale)
+	shipDrawOptions.GeoM.Translate(float64(ship.XPos), float64(ship.YPos))
+	shipDrawOptions.GeoM.Translate(-float64(ship.Img.Bounds().Dx())/2*ship.Scale, -float64(ship.Img.Bounds().Dy())*ship.Scale)
+	drawingFunc(ship.Img, shipDrawOptions)
+}

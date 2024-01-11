@@ -46,4 +46,9 @@ func (bullet *Bullet) MoveBullet(increment int) {
 	bullet.YPos = bullet.YPos - increment
 }
 
-// --> way to increment bullet movement
+func (bullet *Bullet) DrawUpdateBullet(drawingFunc func(*ebiten.Image, *ebiten.DrawImageOptions)) {
+	bulletDrawOptions := &ebiten.DrawImageOptions{}
+	bulletDrawOptions.GeoM.Scale(bullet.Scale, bullet.Scale)
+	bulletDrawOptions.GeoM.Translate(float64(bullet.XPos), float64(bullet.YPos))
+	drawingFunc(bullet.Img, bulletDrawOptions)
+}

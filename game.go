@@ -4,8 +4,6 @@ import (
 
 	//"image/color"
 
-	"fmt"
-
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -28,7 +26,7 @@ type Game struct {
 func (g *Game) Update() error {
 	// movement of ship
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) && !g.bullet.Visible {
-		// shoot
+		// start shooting
 		g.activateBullet()
 	}
 	if inpututil.KeyPressDuration(ebiten.KeyRight) > 0 {
@@ -47,24 +45,16 @@ func (g *Game) Update() error {
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	//screen.Fill(color.RGBA{0x29, 0x62, 0xff, 0xff})
+	screenUpdateFunc := screen.DrawImage
 	// draw the bullet:
 	if g.bullet.Visible {
-		bulletDrawOptions := &ebiten.DrawImageOptions{}
-		bulletDrawOptions.GeoM.Scale(g.bullet.Scale, g.bullet.Scale)
-		bulletDrawOptions.GeoM.Translate(float64(g.bullet.XPos), float64(g.bullet.YPos))
-		fmt.Println(g.bullet.YPos)
-		screen.DrawImage(g.bullet.Img, bulletDrawOptions)
+		g.bullet.DrawUpdateBullet(screenUpdateFunc)
 	}
-
-	// draw the ship:
-	shipDrawOptions := &ebiten.DrawImageOptions{}
-	shipDrawOptions.GeoM.Scale(g.ship.Scale, g.ship.Scale)
-	shipDrawOptions.GeoM.Translate(float64(g.ship.XPos), float64(g.ship.YPos))
-	shipDrawOptions.GeoM.Translate(-float64(g.ship.Img.Bounds().Dx())/2*g.ship.Scale, -float64(g.ship.Img.Bounds().Dy())*g.ship.Scale)
-	screen.DrawImage(g.ship.Img, shipDrawOptions)
+	g.ship.DrawUpdateShip(screenUpdateFunc)
 
 	ebitenutil.DebugPrint(screen, "Space Invaders")
 }
+
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return screenWidth, screenHeight
 }
@@ -85,7 +75,7 @@ func (g *Game) activateBullet() {
 	shipXPos := g.ship.XPos
 	shipYPos := g.ship.YPos - int(float64(g.ship.Img.Bounds().Dy())*g.ship.Scale) + bulletOffset
 	bulletSizeOffset := int(float64(g.bullet.Img.Bounds().Dx()/2) * g.bullet.Scale)
+
 	g.bullet.SetInitialPosition(shipXPos-bulletSizeOffset, shipYPos)
-	// start shooting process
 	g.bullet.Visible = true
 }
