@@ -4,20 +4,26 @@ import (
 	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/phlixx/golang_space_invaders/assets"
 )
 
-func main() {
-	ebiten.SetWindowSize(640, 480)
-	ebiten.SetWindowTitle("Space Invaders Go")
-
-	// init the game:
-	var XPos int16 = screenWidth / 2
-	var YPos int16 = screenHeight
-	var ship *Ship = CreateShip(XPos, YPos)
-	var bullet *Bullet = CreateBullet(XPos, YPos+bulletOffset)
+func initGame() *Game {
+	var XPos int = screenWidth / 2
+	var YPos int = screenHeight
+	var ship *assets.Ship = assets.NewShip(XPos, YPos)
+	var bullet *assets.Bullet = assets.NewBullet(XPos, YPos+bulletOffset)
 
 	g := &Game{ship, bullet}
+	return g
+}
 
+func main() {
+	// set window options
+	ebiten.SetWindowSize(640, 480)
+	ebiten.SetWindowTitle("Space Invaders Go")
+	// init game
+	g := initGame()
+	// run game
 	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
 	}
