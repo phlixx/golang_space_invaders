@@ -9,7 +9,7 @@ import (
 
 const (
 	bulletImagePath string  = "img/Bullet.png"
-	bulletScale     float64 = 0.5
+	bulletScale     float64 = 0.2
 )
 
 type Bullet struct {

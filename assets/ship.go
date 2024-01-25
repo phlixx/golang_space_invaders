@@ -9,7 +9,7 @@ import (
 
 const (
 	shipImagePath string  = "img/Ship.png"
-	shipScale     float64 = 0.5
+	shipScale     float64 = 0.2
 )
 
 type Ship struct {

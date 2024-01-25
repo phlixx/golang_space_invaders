@@ -5,22 +5,22 @@ import (
 	//"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/phlixx/golang_space_invaders/assets"
 )
 
 const (
-	screenWidth      int = 320
-	screenHeight     int = 240
+	screenWidth      int = 224
+	screenHeight     int = 256
 	shipSingleMove   int = 3
 	bulletSingleMove int = 3
 	bulletOffset     int = 5
 )
 
 type Game struct {
-	ship   *assets.Ship
-	bullet *assets.Bullet
+	ship     *assets.Ship
+	bullet   *assets.Bullet
+	invaders *([]*assets.Invader)
 }
 
 func (g *Game) Update() error {
@@ -52,7 +52,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 	g.ship.DrawUpdateShip(screenUpdateFunc)
 
-	ebitenutil.DebugPrint(screen, "Space Invaders")
+	// draw the invaders
+	for _, invader := range *g.invaders {
+		invader.DrawUpdateInvader(screenUpdateFunc)
+	}
+
+	//ebitenutil.DebugPrint(screen, "Space Invaders")
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
@@ -78,4 +83,35 @@ func (g *Game) activateBullet() {
 
 	g.bullet.SetInitialPosition(shipXPos-bulletSizeOffset, shipYPos)
 	g.bullet.Visible = true
+}
+
+func (g *Game) createInvaders() {
+	// spawn all invaders 6 x 11
+	invaderFactories := []func(int, int) *assets.Invader{
+		assets.NewInvaderA1,
+		assets.NewInvaderA2,
+		assets.NewInvaderB1,
+		assets.NewInvaderB2,
+		assets.NewInvaderC1,
+		assets.NewInvaderC2,
+	}
+
+	// for each invader spawn 11
+	invaders := make([]*assets.Invader, 6*11)
+	const x_offset = 18
+	xpos := (screenWidth - x_offset*11) / 2
+	ypos := 40
+	for row, invaderFactory := range invaderFactories {
+		for col := 1; col <= 11; col++ {
+			invaders[row*11+col-1] = invaderFactory(xpos, ypos)
+			xpos = xpos + x_offset
+		}
+		xpos = xpos - 11*x_offset
+		ypos = ypos + 20
+
+	}
+
+	// set invader game slice:
+
+	g.invaders = &invaders
 }
