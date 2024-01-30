@@ -12,7 +12,7 @@ import (
 const (
 	screenWidth      int = 224
 	screenHeight     int = 256
-	shipSingleMove   int = 3
+	shipSingleMove   int = 1
 	bulletSingleMove int = 3
 	bulletOffset     int = 5
 )
@@ -39,6 +39,7 @@ func (g *Game) Update() error {
 	}
 
 	g.moveAssets()
+	g.checkBulletCollision()
 
 	return nil
 }
@@ -54,7 +55,14 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	// draw the invaders
 	for _, invader := range *g.invaders {
-		invader.DrawUpdateInvader(screenUpdateFunc)
+		switch state := invader.State; state {
+		case assets.StateDead:
+			break
+		case assets.StateAlive:
+			invader.DrawUpdateInvader(screenUpdateFunc)
+		case assets.StateExploding:
+			go invader.KillAnimation(screenUpdateFunc)
+		}
 	}
 
 	//ebitenutil.DebugPrint(screen, "Space Invaders")
@@ -71,6 +79,22 @@ func (g *Game) moveAssets() {
 		// check if bullet is outside drawing area and then reset
 		if g.bullet.YPos <= 0 {
 			g.bullet.Visible = false
+		}
+	}
+}
+
+func (g *Game) checkBulletCollision() {
+	for _, invader := range *g.invaders {
+		// ignore dead or already exploding assets
+		if invader.State != assets.StateAlive {
+			continue
+		}
+		if invader.InsideCollisionBox(g.bullet.XPos, g.bullet.YPos) {
+			invader.State = assets.StateExploding
+			g.bullet.XPos = g.ship.XPos
+			g.bullet.YPos = g.ship.YPos
+			g.bullet.Visible = false
+			break
 		}
 	}
 }

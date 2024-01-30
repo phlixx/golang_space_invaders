@@ -2,6 +2,8 @@ package assets
 
 import (
 	"log"
+	"math"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -15,7 +17,14 @@ const (
 	invaderB2ImagePath   string  = "B2.png"
 	invaderC1ImagePath   string  = "C1.png"
 	invaderC2ImagePath   string  = "C2.png"
+	invaderDeathImage    string  = "img/RedInvader.png"
 	invaderScale         float64 = 0.34
+)
+
+const (
+	StateAlive     int = 0
+	StateExploding int = 1
+	StateDead      int = 2
 )
 
 type Invader struct {
@@ -23,6 +32,7 @@ type Invader struct {
 	XPos  int
 	YPos  int
 	Scale float64
+	State int
 }
 
 func getInvaderImage(invaderImagePath string) *ebiten.Image {
@@ -39,6 +49,7 @@ func NewInvaderA1(XPos, YPos int) *Invader {
 		XPos:  XPos,
 		YPos:  YPos,
 		Scale: invaderScale * 0.7,
+		State: StateAlive,
 	}
 }
 func NewInvaderA2(XPos, YPos int) *Invader {
@@ -47,6 +58,7 @@ func NewInvaderA2(XPos, YPos int) *Invader {
 		XPos:  XPos,
 		YPos:  YPos,
 		Scale: invaderScale * 0.7,
+		State: StateAlive,
 	}
 }
 
@@ -56,6 +68,7 @@ func NewInvaderB1(XPos, YPos int) *Invader {
 		XPos:  XPos,
 		YPos:  YPos,
 		Scale: invaderScale * 0.9,
+		State: StateAlive,
 	}
 }
 
@@ -65,6 +78,7 @@ func NewInvaderB2(XPos, YPos int) *Invader {
 		XPos:  XPos,
 		YPos:  YPos,
 		Scale: invaderScale * 0.9,
+		State: StateAlive,
 	}
 }
 
@@ -74,6 +88,7 @@ func NewInvaderC1(XPos, YPos int) *Invader {
 		XPos:  XPos,
 		YPos:  YPos,
 		Scale: invaderScale,
+		State: StateAlive,
 	}
 }
 
@@ -83,6 +98,7 @@ func NewInvaderC2(XPos, YPos int) *Invader {
 		XPos:  XPos,
 		YPos:  YPos,
 		Scale: invaderScale,
+		State: StateAlive,
 	}
 }
 
@@ -91,4 +107,34 @@ func (inv *Invader) DrawUpdateInvader(drawingFunc func(*ebiten.Image, *ebiten.Dr
 	invDrawOptions.GeoM.Scale(inv.Scale, inv.Scale)
 	invDrawOptions.GeoM.Translate(float64(inv.XPos), float64(inv.YPos))
 	drawingFunc(inv.Img, invDrawOptions)
+}
+
+func (inv *Invader) KillAnimation(drawingFunc func(*ebiten.Image, *ebiten.DrawImageOptions)) {
+	img, _, err := ebitenutil.NewImageFromFile(invaderDeathImage)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	inv.Img = img
+
+	// sleep for 0.5 sec
+	time.Sleep(500 * time.Millisecond)
+	inv.State = StateDead
+
+	// TODO: does not work
+}
+
+func (inv *Invader) InsideCollisionBox(xPos, yPos int) bool {
+	// checks wheter a given x,y combination is in the collision box of an invader:
+
+	width, height := float64(inv.Img.Bounds().Dx()), float64(inv.Img.Bounds().Dy())
+	hitboxWidth := width * inv.Scale
+	hitboxHeight := height * inv.Scale
+
+	hitboxDiffX := math.Abs(float64(xPos) - float64(inv.XPos))
+	hitboxDiffY := math.Abs(float64(yPos) - float64(inv.YPos))
+	if (hitboxDiffX <= hitboxWidth) && (hitboxDiffY <= hitboxHeight) {
+		return true
+	}
+	return false
 }
