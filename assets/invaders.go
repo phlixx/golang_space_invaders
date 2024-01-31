@@ -2,7 +2,6 @@ package assets
 
 import (
 	"log"
-	"math"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -27,12 +26,36 @@ const (
 	StateDead      int = 2
 )
 
+const (
+	MoveRight int = 0
+	MoveDown  int = 1
+	MoveLeft  int = 2
+)
+
+var invaderMovingPattern [13]int = [13]int{
+	MoveRight,
+	MoveRight,
+	MoveRight,
+	MoveRight,
+	MoveRight,
+	MoveRight,
+	MoveDown,
+	MoveLeft,
+	MoveLeft,
+	MoveLeft,
+	MoveLeft,
+	MoveLeft,
+	MoveLeft,
+}
+
 type Invader struct {
-	Img   *ebiten.Image
-	XPos  int
-	YPos  int
-	Scale float64
-	State int
+	Img               *ebiten.Image
+	XPos              int
+	YPos              int
+	Scale             float64
+	State             int
+	MoveCounter       int
+	MoveCounterOffset int
 }
 
 func getInvaderImage(invaderImagePath string) *ebiten.Image {
@@ -45,60 +68,72 @@ func getInvaderImage(invaderImagePath string) *ebiten.Image {
 
 func NewInvaderA1(XPos, YPos int) *Invader {
 	return &Invader{
-		Img:   getInvaderImage(invaderA1ImagePath),
-		XPos:  XPos,
-		YPos:  YPos,
-		Scale: invaderScale * 0.7,
-		State: StateAlive,
+		Img:               getInvaderImage(invaderA1ImagePath),
+		XPos:              XPos,
+		YPos:              YPos,
+		Scale:             invaderScale * 0.7,
+		State:             StateAlive,
+		MoveCounter:       0,
+		MoveCounterOffset: 10,
 	}
 }
 func NewInvaderA2(XPos, YPos int) *Invader {
 	return &Invader{
-		Img:   getInvaderImage(invaderA2ImagePath),
-		XPos:  XPos,
-		YPos:  YPos,
-		Scale: invaderScale * 0.7,
-		State: StateAlive,
+		Img:               getInvaderImage(invaderA2ImagePath),
+		XPos:              XPos,
+		YPos:              YPos,
+		Scale:             invaderScale * 0.7,
+		State:             StateAlive,
+		MoveCounter:       0,
+		MoveCounterOffset: 20,
 	}
 }
 
 func NewInvaderB1(XPos, YPos int) *Invader {
 	return &Invader{
-		Img:   getInvaderImage(invaderB1ImagePath),
-		XPos:  XPos,
-		YPos:  YPos,
-		Scale: invaderScale * 0.9,
-		State: StateAlive,
+		Img:               getInvaderImage(invaderB1ImagePath),
+		XPos:              XPos,
+		YPos:              YPos,
+		Scale:             invaderScale * 0.9,
+		State:             StateAlive,
+		MoveCounter:       0,
+		MoveCounterOffset: 30,
 	}
 }
 
 func NewInvaderB2(XPos, YPos int) *Invader {
 	return &Invader{
-		Img:   getInvaderImage(invaderB2ImagePath),
-		XPos:  XPos,
-		YPos:  YPos,
-		Scale: invaderScale * 0.9,
-		State: StateAlive,
+		Img:               getInvaderImage(invaderB2ImagePath),
+		XPos:              XPos,
+		YPos:              YPos,
+		Scale:             invaderScale * 0.9,
+		State:             StateAlive,
+		MoveCounter:       0,
+		MoveCounterOffset: 40,
 	}
 }
 
 func NewInvaderC1(XPos, YPos int) *Invader {
 	return &Invader{
-		Img:   getInvaderImage(invaderC1ImagePath),
-		XPos:  XPos,
-		YPos:  YPos,
-		Scale: invaderScale,
-		State: StateAlive,
+		Img:               getInvaderImage(invaderC1ImagePath),
+		XPos:              XPos,
+		YPos:              YPos,
+		Scale:             invaderScale,
+		State:             StateAlive,
+		MoveCounter:       0,
+		MoveCounterOffset: 50,
 	}
 }
 
 func NewInvaderC2(XPos, YPos int) *Invader {
 	return &Invader{
-		Img:   getInvaderImage(invaderC2ImagePath),
-		XPos:  XPos,
-		YPos:  YPos,
-		Scale: invaderScale,
-		State: StateAlive,
+		Img:               getInvaderImage(invaderC2ImagePath),
+		XPos:              XPos,
+		YPos:              YPos,
+		Scale:             invaderScale,
+		State:             StateAlive,
+		MoveCounter:       0,
+		MoveCounterOffset: 60,
 	}
 }
 
@@ -131,10 +166,32 @@ func (inv *Invader) InsideCollisionBox(xPos, yPos int) bool {
 	hitboxWidth := width * inv.Scale
 	hitboxHeight := height * inv.Scale
 
-	hitboxDiffX := math.Abs(float64(xPos) - float64(inv.XPos))
-	hitboxDiffY := math.Abs(float64(yPos) - float64(inv.YPos))
-	if (hitboxDiffX <= hitboxWidth) && (hitboxDiffY <= hitboxHeight) {
+	hitboxDiffX := float64(xPos) - float64(inv.XPos)
+	hitboxDiffY := float64(yPos) - float64(inv.YPos)
+	if hitboxDiffX > 0 && hitboxDiffY > 0 && (hitboxDiffX <= hitboxWidth) && (hitboxDiffY <= hitboxHeight) {
 		return true
 	}
 	return false
+}
+
+func (inv *Invader) MoveInvader(increment int) {
+	oldCount := inv.MoveCounter + inv.MoveCounterOffset
+	// update move counter
+	inv.MoveCounter = inv.MoveCounter + 1
+	checkMove := oldCount%30 == 0
+	if !checkMove {
+		return
+	}
+	moveIndex := oldCount / 30 % 13
+	currentMove := invaderMovingPattern[moveIndex]
+
+	switch move := currentMove; move {
+	case MoveLeft:
+		inv.XPos = inv.XPos - increment
+	case MoveDown:
+		inv.YPos = inv.YPos + increment*3
+	case MoveRight:
+		inv.XPos = inv.XPos + increment
+	}
+
 }

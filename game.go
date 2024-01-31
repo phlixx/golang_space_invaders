@@ -10,11 +10,12 @@ import (
 )
 
 const (
-	screenWidth      int = 224
-	screenHeight     int = 256
-	shipSingleMove   int = 1
-	bulletSingleMove int = 3
-	bulletOffset     int = 5
+	screenWidth       int = 224
+	screenHeight      int = 256
+	shipSingleMove    int = 1
+	invaderSingleMove int = 1
+	bulletSingleMove  int = 5
+	bulletOffset      int = 5
 )
 
 type Game struct {
@@ -81,6 +82,14 @@ func (g *Game) moveAssets() {
 			g.bullet.Visible = false
 		}
 	}
+	for _, invader := range *g.invaders {
+		// ignore dead or already exploding assets
+		if invader.State != assets.StateAlive {
+			continue
+		}
+		invader.MoveInvader(invaderSingleMove)
+	}
+
 }
 
 func (g *Game) checkBulletCollision() {
