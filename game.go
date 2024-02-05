@@ -4,18 +4,22 @@ import (
 
 	//"image/color"
 
+	"fmt"
+	"math/rand"
+
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/phlixx/golang_space_invaders/assets"
 )
 
 const (
-	screenWidth       int = 224
-	screenHeight      int = 256
-	shipSingleMove    int = 1
-	invaderSingleMove int = 1
-	bulletSingleMove  int = 5
-	bulletOffset      int = 5
+	screenWidth              int = 224
+	screenHeight             int = 256
+	shipSingleMove           int = 1
+	invaderSingleMove        int = 1
+	bulletSingleMove         int = 5
+	bulletOffset             int = 5
+	invaderShootRandomChance int = 100
 )
 
 type Game struct {
@@ -41,6 +45,9 @@ func (g *Game) Update() error {
 
 	g.moveAssets()
 	g.checkBulletCollision()
+	if rand.Intn(invaderShootRandomChance) == 1 {
+		g.activeInvaderBullet()
+	}
 
 	return nil
 }
@@ -58,22 +65,43 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	for _, invader := range *g.invaders {
 		switch state := invader.State; state {
 		case assets.StateDead:
-			break
 		case assets.StateAlive:
 			invader.DrawUpdateInvader(screenUpdateFunc)
 		case assets.StateExploding:
 			go invader.KillAnimation(screenUpdateFunc)
 		}
-	}
 
-	//ebitenutil.DebugPrint(screen, "Space Invaders")
+		// in any case draw their (visible) bullets:
+		if invader.InvaderBullet.Visible {
+			invader.InvaderBullet.DrawUpdateBullet(screenUpdateFunc)
+		}
+	}
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return screenWidth, screenHeight
 }
 
-func (g *Game) moveAssets() {
+func (g *Game) moveInvadersAndBullets() {
+	for _, invader := range *g.invaders {
+		// ignore dead or already exploding assets
+		if invader.State != assets.StateAlive {
+			continue
+		}
+		invader.MoveInvader(invaderSingleMove)
+
+		// if the invader Bullet is active, shoot it!
+		invBullet := invader.InvaderBullet
+		if invBullet.Visible {
+			invBullet.MoveInvaderBullet(bulletSingleMove)
+			if invBullet.YPos >= screenHeight {
+				invBullet.Visible = false
+			}
+		}
+	}
+}
+
+func (g *Game) moveShipBullet() {
 	// if bullet is visible: move it
 	if g.bullet.Visible {
 		g.bullet.MoveBullet(bulletSingleMove)
@@ -82,13 +110,11 @@ func (g *Game) moveAssets() {
 			g.bullet.Visible = false
 		}
 	}
-	for _, invader := range *g.invaders {
-		// ignore dead or already exploding assets
-		if invader.State != assets.StateAlive {
-			continue
-		}
-		invader.MoveInvader(invaderSingleMove)
-	}
+}
+
+func (g *Game) moveAssets() {
+	g.moveShipBullet()
+	g.moveInvadersAndBullets()
 
 }
 
@@ -147,4 +173,35 @@ func (g *Game) createInvaders() {
 	// set invader game slice:
 
 	g.invaders = &invaders
+}
+
+func (g *Game) getFrontRowAliveInvaders() ([]*assets.Invader, int) {
+	// gets the invaders alive in the first row
+	var frontRowInvaders []*assets.Invader
+	for col_idx := 11; col_idx >= 1; col_idx-- {
+		for row_idx := 0; row_idx < 6; row_idx++ {
+			idx := (11*6 - col_idx) - row_idx*11
+			invaders := *g.invaders
+
+			if invaders[idx].State == assets.StateAlive {
+				frontRowInvaders = append(frontRowInvaders, invaders[idx])
+				fmt.Println(idx)
+				break
+			}
+		}
+	}
+	fmt.Println("")
+	return frontRowInvaders, len(frontRowInvaders)
+}
+
+func (g *Game) activeInvaderBullet() {
+	// only the invaders from the first row will shoot
+	frontRowInvaders, num_front_row_inv := g.getFrontRowAliveInvaders()
+
+	// select a random one:
+	invIdx := rand.Intn(num_front_row_inv)
+	invader := frontRowInvaders[invIdx]
+	//active its bullet:
+	invader.InvaderBullet.Visible = true
+	invader.InvaderBullet.XPos, invader.InvaderBullet.YPos = invader.XPos, invader.YPos
 }

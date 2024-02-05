@@ -56,6 +56,7 @@ type Invader struct {
 	State             int
 	MoveCounter       int
 	MoveCounterOffset int
+	InvaderBullet     *InvaderBullet
 }
 
 func getInvaderImage(invaderImagePath string) *ebiten.Image {
@@ -66,75 +67,56 @@ func getInvaderImage(invaderImagePath string) *ebiten.Image {
 	return img
 }
 
-func NewInvaderA1(XPos, YPos int) *Invader {
+func NewInvaderBase(XPos, YPos int, ImagePath string) *Invader {
 	return &Invader{
-		Img:               getInvaderImage(invaderA1ImagePath),
-		XPos:              XPos,
-		YPos:              YPos,
-		Scale:             invaderScale * 0.7,
-		State:             StateAlive,
-		MoveCounter:       0,
-		MoveCounterOffset: 10,
+		Img:           getInvaderImage(ImagePath),
+		XPos:          XPos,
+		YPos:          YPos,
+		State:         StateAlive,
+		MoveCounter:   0,
+		InvaderBullet: NewInvaderBullet(XPos, YPos),
 	}
 }
+
+func NewInvaderA1(XPos, YPos int) *Invader {
+	invader := NewInvaderBase(XPos, YPos, invaderA1ImagePath)
+	invader.Scale = invaderScale * 0.7
+	invader.MoveCounterOffset = 10
+	return invader
+}
 func NewInvaderA2(XPos, YPos int) *Invader {
-	return &Invader{
-		Img:               getInvaderImage(invaderA2ImagePath),
-		XPos:              XPos,
-		YPos:              YPos,
-		Scale:             invaderScale * 0.7,
-		State:             StateAlive,
-		MoveCounter:       0,
-		MoveCounterOffset: 20,
-	}
+	invader := NewInvaderBase(XPos, YPos, invaderA2ImagePath)
+	invader.Scale = invaderScale * 0.7
+	invader.MoveCounterOffset = 20
+	return invader
 }
 
 func NewInvaderB1(XPos, YPos int) *Invader {
-	return &Invader{
-		Img:               getInvaderImage(invaderB1ImagePath),
-		XPos:              XPos,
-		YPos:              YPos,
-		Scale:             invaderScale * 0.9,
-		State:             StateAlive,
-		MoveCounter:       0,
-		MoveCounterOffset: 30,
-	}
+	invader := NewInvaderBase(XPos, YPos, invaderB1ImagePath)
+	invader.Scale = invaderScale * 0.9
+	invader.MoveCounterOffset = 30
+	return invader
 }
 
 func NewInvaderB2(XPos, YPos int) *Invader {
-	return &Invader{
-		Img:               getInvaderImage(invaderB2ImagePath),
-		XPos:              XPos,
-		YPos:              YPos,
-		Scale:             invaderScale * 0.9,
-		State:             StateAlive,
-		MoveCounter:       0,
-		MoveCounterOffset: 40,
-	}
+	invader := NewInvaderBase(XPos, YPos, invaderB2ImagePath)
+	invader.Scale = invaderScale * 0.9
+	invader.MoveCounterOffset = 40
+	return invader
 }
 
 func NewInvaderC1(XPos, YPos int) *Invader {
-	return &Invader{
-		Img:               getInvaderImage(invaderC1ImagePath),
-		XPos:              XPos,
-		YPos:              YPos,
-		Scale:             invaderScale,
-		State:             StateAlive,
-		MoveCounter:       0,
-		MoveCounterOffset: 50,
-	}
+	invader := NewInvaderBase(XPos, YPos, invaderC1ImagePath)
+	invader.Scale = invaderScale
+	invader.MoveCounterOffset = 50
+	return invader
 }
 
 func NewInvaderC2(XPos, YPos int) *Invader {
-	return &Invader{
-		Img:               getInvaderImage(invaderC2ImagePath),
-		XPos:              XPos,
-		YPos:              YPos,
-		Scale:             invaderScale,
-		State:             StateAlive,
-		MoveCounter:       0,
-		MoveCounterOffset: 60,
-	}
+	invader := NewInvaderBase(XPos, YPos, invaderC2ImagePath)
+	invader.Scale = invaderScale
+	invader.MoveCounterOffset = 60
+	return invader
 }
 
 func (inv *Invader) DrawUpdateInvader(drawingFunc func(*ebiten.Image, *ebiten.DrawImageOptions)) {
