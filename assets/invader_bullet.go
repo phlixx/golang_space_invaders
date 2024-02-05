@@ -21,6 +21,11 @@ type InvaderBullet struct {
 	Visible bool
 }
 
+func (bullet *InvaderBullet) SetInitialPosition(XPos, YPos int) {
+	bullet.YPos = YPos
+	bullet.XPos = XPos
+}
+
 func NewInvaderBullet(XPos, YPos int) *InvaderBullet {
 	var err error
 	var img *ebiten.Image

@@ -84,12 +84,6 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 
 func (g *Game) moveInvadersAndBullets() {
 	for _, invader := range *g.invaders {
-		// ignore dead or already exploding assets
-		if invader.State != assets.StateAlive {
-			continue
-		}
-		invader.MoveInvader(invaderSingleMove)
-
 		// if the invader Bullet is active, shoot it!
 		invBullet := invader.InvaderBullet
 		if invBullet.Visible {
@@ -98,6 +92,12 @@ func (g *Game) moveInvadersAndBullets() {
 				invBullet.Visible = false
 			}
 		}
+
+		// ignore dead or already exploding assets
+		if invader.State != assets.StateAlive {
+			continue
+		}
+		invader.MoveInvader(invaderSingleMove)
 	}
 }
 
@@ -115,7 +115,6 @@ func (g *Game) moveShipBullet() {
 func (g *Game) moveAssets() {
 	g.moveShipBullet()
 	g.moveInvadersAndBullets()
-
 }
 
 func (g *Game) checkBulletCollision() {
@@ -171,7 +170,6 @@ func (g *Game) createInvaders() {
 	}
 
 	// set invader game slice:
-
 	g.invaders = &invaders
 }
 
@@ -203,5 +201,5 @@ func (g *Game) activeInvaderBullet() {
 	invader := frontRowInvaders[invIdx]
 	//active its bullet:
 	invader.InvaderBullet.Visible = true
-	invader.InvaderBullet.XPos, invader.InvaderBullet.YPos = invader.XPos, invader.YPos
+	invader.InvaderBullet.SetInitialPosition(invader.XPos+bulletOffset, invader.YPos)
 }
